@@ -1,0 +1,38 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+        paths:
+      - "frontend/**"
+
+      permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+        steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+              # Authenticate with AWS using OIDC.
+      # This uses short-lived credentials instead of storing AWS access keys in GitHub.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::340752804709:role/github-actions-resume-deploy-role
+          aws-region: eu-west-2
+
+                # Deploy the frontend files to the S3 bucket.
+      # --delete removes files from S3 that no longer exist in frontend/.
+      - name: Deploy frontend to S3
+        run: aws s3 sync frontend/ s3://gloria-brodrick-resume-2026/ --delete
+
+              # Clear CloudFront's cache after deployment so visitors
+      # receive the latest version of the website.
+      - name: Invalidate CloudFront cache
+        run: aws cloudfront create-invalidation --distribution-id E3T0W6PJ6C7PA6 --paths "/*"
