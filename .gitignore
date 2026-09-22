@@ -2,7 +2,9 @@
 .terraform/
 *.tfstate
 *.tfstate.*
-.terraform.lock.hcl
+
+# Lambda deployment packages
+*.zip
 
 # Local files
 .DS_Store
